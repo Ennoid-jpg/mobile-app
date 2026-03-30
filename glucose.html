@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Glucose Monitor — Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="glucose.css" />
+</head>
+<body>
+  <!-- DASHBOARD -->
+  <section class="screen active" id="screen-dashboard">
+    <header class="app-bar">
+      <div class="title-wrap">
+        <div class="app-title">Glucose Monitor</div>
+        <div class="subtitle">Demo CGM-style dashboard</div>
+      </div>
+      <div class="bar-actions">
+        <div class="pill" title="Device connection">
+          <span class="dot" id="dev-dot"></span>
+          <span id="dev-pill">Connected</span>
+        </div>
+        <button type="button" class="icon-btn" id="btn-settings" aria-label="Settings">⚙️</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="grid">
+        <div class="card">
+          <div class="card-h">
+            <h3>Current reading</h3>
+            <span class="pill" style="gap:6px;" id="updated-pill">
+              <span style="opacity:.85;">⏱</span>
+              <span id="updated-text">Updated 2m ago</span>
+            </span>
+          </div>
+          <div class="card-b">
+            <div class="big-reading">
+              <div class="reading">
+                <div class="reading-wrap">
+                  <div class="value">
+                    <span class="num" id="cur-num">112</span>
+                    <span class="unit" id="cur-unit">mg/dL</span>
+                    <span class="trend" id="cur-trend">↗ +3</span>
+                  </div>
+                  <div class="ring" id="cur-ring" aria-label="Status indicator">
+                    <span class="ring-emoji" id="cur-ring-emoji">✅</span>
+                  </div>
+                </div>
+                <div class="meta" id="cur-meta">Target range 80–140 • In range</div>
+              </div>
+              <div class="pill" style="border-color: rgba(167,139,250,.25); background: rgba(167,139,250,.10); color:#e9dcff;">
+                <span style="font-weight:900;">A1C</span>
+                <span style="font-weight:900;" id="a1c-pill">6.2%</span>
+              </div>
+            </div>
+
+            <div class="range-bar" aria-label="Glucose range bar">
+              <div class="range-fill" id="range-fill"></div>
+              <span class="range-mark" id="mark-low" style="left: 28%;"></span>
+              <span class="range-mark" id="mark-high" style="left: 74%;"></span>
+            </div>
+
+            <div style="height:12px;"></div>
+
+            <div class="stat-row">
+              <div class="stat">
+                <div class="k">Time in range</div>
+                <div class="v" id="stat-tir">78%</div>
+              </div>
+              <div class="stat">
+                <div class="k">Avg (24h)</div>
+                <div class="v" id="stat-avg">124</div>
+              </div>
+              <div class="stat">
+                <div class="k">Last reading</div>
+                <div class="v" id="stat-last">112</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <h3>Quick actions</h3>
+            <span class="pill">Today</span>
+          </div>
+          <div class="card-b">
+            <div class="list">
+              <button type="button" class="btn primary" data-action="log">
+                <span>➕</span><span>Log reading</span>
+              </button>
+              <button type="button" class="btn" data-action="meal">
+                <span>🍽️</span><span>Add meal</span>
+              </button>
+              <button type="button" class="btn" data-action="insulin">
+                <span>💉</span><span>Add insulin</span>
+              </button>
+              <button type="button" class="btn" data-action="exercise">
+                <span>🏃</span><span>Add activity</span>
+              </button>
+            </div>
+            <div style="height:10px;"></div>
+            <div class="pill" style="width:100%; justify-content:space-between;">
+              <span style="opacity:.9;">Low alert</span>
+              <span style="font-weight:900; color:#bff3cf;">On (70)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card">
+        <div class="card-h">
+          <h3>24-hour glucose graph</h3>
+          <span class="pill" id="dash-period">24h</span>
+        </div>
+        <div class="card-b">
+          <div class="canvas-wrap" aria-label="24 hour glucose chart">
+            <canvas class="chart" id="chart-24h" width="900" height="300"></canvas>
+          </div>
+          <div class="legend" id="dash-legend">
+            <span class="pill" id="legend-range">Range 80–140</span>
+            <span class="pill" id="legend-status"><span style="color:#bff3cf; font-weight:900;">In range</span></span>
+            <span class="pill" id="legend-peak">Peak 162</span>
+            <span class="pill" id="legend-low">Low 71</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Bottom navigation">
+      <button type="button" class="nav-item active" data-nav="dashboard"><span>🏠</span><span>Dashboard</span></button>
+      <button type="button" class="nav-item" data-nav="logs"><span>📋</span><span>Logs</span></button>
+      <button type="button" class="nav-item" data-nav="trends"><span>📈</span><span>Trends</span></button>
+      <button type="button" class="nav-item" data-nav="alerts"><span>🔔</span><span>Alerts</span><span class="alert-badge" id="nav-alert-badge">!</span></button>
+      <button type="button" class="nav-item" data-nav="profile"><span>👤</span><span>Profile</span></button>
+    </nav>
+  </section>
+
+  <!-- LOGS -->
+  <section class="screen" id="screen-logs">
+    <header class="app-bar">
+      <div class="title-wrap">
+        <div class="app-title">Logs</div>
+        <div class="subtitle">Readings, meals, insulin, activity</div>
+      </div>
+      <div class="bar-actions">
+        <button type="button" class="icon-btn" id="logs-back" aria-label="Back">←</button>
+      </div>
+    </header>
+    <main class="content">
+      <div class="card">
+        <div class="card-h"><h3>Meal & insulin log</h3><span class="pill" id="meal-count-pill">Recent</span></div>
+        <div class="card-b">
+          <div class="list" id="meal-insulin-list"></div>
+          <div style="height:10px;"></div>
+          <div class="chip-row" aria-label="Quick add meal insulin">
+            <span class="chip" data-add="meal-breakfast">🍳 Breakfast</span>
+            <span class="chip" data-add="meal-lunch">🥪 Lunch</span>
+            <span class="chip" data-add="meal-dinner">🍝 Dinner</span>
+            <span class="chip" data-add="meal-snack">🍎 Snack</span>
+            <span class="chip" data-add="insulin-bolus">💉 Bolus</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card">
+        <div class="card-h"><h3>Daily log list</h3><span class="pill" id="daily-count-pill">—</span></div>
+        <div class="card-b">
+          <div class="list" id="logs-list">
+            <div class="row">
+              <span class="badge good">112</span>
+              <div class="row-main">
+                <div class="row-title">Glucose reading</div>
+                <div class="row-sub">7:32 PM • ↗ rising slowly</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="badge warn">156</span>
+              <div class="row-main">
+                <div class="row-title">Post-meal spike</div>
+                <div class="row-sub">6:10 PM • Dinner • 45g carbs</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="badge good">💉</span>
+              <div class="row-main">
+                <div class="row-title">Insulin</div>
+                <div class="row-sub">6:05 PM • Bolus • 4u</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="badge good">🏃</span>
+              <div class="row-main">
+                <div class="row-title">Activity</div>
+                <div class="row-sub">4:20 PM • Walk • 25 min</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="badge bad">71</span>
+              <div class="row-main">
+                <div class="row-title">Low glucose</div>
+                <div class="row-sub">2:18 PM • Treated with 15g carbs</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="badge good">98</span>
+              <div class="row-main">
+                <div class="row-title">Glucose reading</div>
+                <div class="row-sub">1:55 PM • → stable</div>
+              </div>
+            </div>
+          </div>
+          <div style="height:10px;"></div>
+          <button class="btn primary" type="button" id="btn-add-log">➕ Add reading (demo)</button>
+          <div style="height:10px;"></div>
+          <button class="btn" type="button" id="btn-clear-logs">🧹 Clear logs (today)</button>
+        </div>
+      </div>
+    </main>
+    <nav class="bottom-nav" aria-label="Bottom navigation">
+      <button type="button" class="nav-item" data-nav="dashboard"><span>🏠</span><span>Dashboard</span></button>
+      <button type="button" class="nav-item active" data-nav="logs"><span>📋</span><span>Logs</span></button>
+      <button type="button" class="nav-item" data-nav="trends"><span>📈</span><span>Trends</span></button>
+      <button type="button" class="nav-item" data-nav="alerts"><span>🔔</span><span>Alerts</span></button>
+      <button type="button" class="nav-item" data-nav="profile"><span>👤</span><span>Profile</span></button>
+    </nav>
+  </section>
+
+  <!-- TRENDS -->
+  <section class="screen" id="screen-trends">
+    <header class="app-bar">
+      <div class="title-wrap">
+        <div class="app-title">Trends</div>
+        <div class="subtitle">Weekly summary (demo)</div>
+      </div>
+      <div class="bar-actions">
+        <button type="button" class="icon-btn" id="trends-back" aria-label="Back">←</button>
+      </div>
+    </header>
+    <main class="content">
+      <div class="card">
+        <div class="card-h"><h3>Time period</h3><span class="pill" id="period-pill">Day</span></div>
+        <div class="card-b">
+          <div class="chip-row" id="period-toggle" aria-label="Time period toggle">
+            <span class="chip active" data-period="day">Day</span>
+            <span class="chip" data-period="week">Week</span>
+            <span class="chip" data-period="month">Month</span>
+            <span class="chip" data-period="90d">90 days</span>
+          </div>
+          <div class="divider"></div>
+          <div class="canvas-wrap" aria-label="Selected period glucose chart">
+            <canvas class="chart" id="chart-period" width="900" height="300"></canvas>
+          </div>
+          <div class="legend" id="period-legend"></div>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card">
+        <div class="card-h"><h3>Time-in-Range</h3><span class="pill" id="tir-pill">—</span></div>
+        <div class="card-b">
+          <div class="range-bar" aria-label="Time in range segmented bar" style="height:14px;">
+            <div id="tir-bar" style="display:flex; height:100%; width:100%;">
+              <div id="tir-low" style="width:10%; background: rgba(251,113,133,.85);"></div>
+              <div id="tir-norm" style="width:80%; background: rgba(34,197,94,.85);"></div>
+              <div id="tir-high" style="width:10%; background: rgba(251,191,36,.85);"></div>
+            </div>
+          </div>
+          <div style="height:10px;"></div>
+          <div class="stat-row" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="stat"><div class="k">Low</div><div class="v" id="tir-low-v">—</div></div>
+            <div class="stat"><div class="k">Normal</div><div class="v" id="tir-norm-v">—</div></div>
+            <div class="stat"><div class="k">High</div><div class="v" id="tir-high-v">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card">
+        <div class="card-h"><h3>Glucose stability heatmap</h3><span class="pill">Calendar</span></div>
+        <div class="card-b">
+          <div class="canvas-wrap" aria-label="Stability heatmap">
+            <canvas class="chart sm" id="chart-heatmap" width="900" height="260"></canvas>
+          </div>
+          <div class="meta" style="margin-top:10px;" id="heatmap-meta">Green = stable days, red = unstable days (demo).</div>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card">
+        <div class="card-h"><h3>Meal impact chart</h3><span class="pill">Avg 2h rise</span></div>
+        <div class="card-b">
+          <div class="canvas-wrap" aria-label="Meal impact chart">
+            <canvas class="chart sm" id="chart-meal-impact" width="900" height="260"></canvas>
+          </div>
+          <div class="meta" style="margin-top:10px;">Compares average glucose increase after each meal type (demo).</div>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card">
+        <div class="card-h"><h3>Weekly trend comparison</h3><span class="pill">This vs last</span></div>
+        <div class="card-b">
+          <div class="canvas-wrap" aria-label="Weekly overlay chart">
+            <canvas class="chart" id="chart-week-compare" width="900" height="300"></canvas>
+          </div>
+          <div class="legend">
+            <span class="pill"><span style="color:#bfeaff; font-weight:900;">This week</span></span>
+            <span class="pill"><span style="color:#e9dcff; font-weight:900;">Last week</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card">
+        <div class="card-h"><h3>AI insight cards</h3><span class="pill">Auto</span></div>
+        <div class="card-b">
+          <div class="list" id="ai-insights-list"></div>
+          <div style="height:10px;"></div>
+          <div class="pill" id="recommendation-banner" style="width:100%; justify-content:space-between; border-color: rgba(56,189,248,.25); background: rgba(56,189,248,.10); color:#bfeaff;">
+            <span style="font-weight:950;">Tip</span>
+            <span id="recommendation-text" style="font-weight:900;">—</span>
+          </div>
+        </div>
+      </div>
+    </main>
+    <nav class="bottom-nav" aria-label="Bottom navigation">
+      <button type="button" class="nav-item" data-nav="dashboard"><span>🏠</span><span>Dashboard</span></button>
+      <button type="button" class="nav-item" data-nav="logs"><span>📋</span><span>Logs</span></button>
+      <button type="button" class="nav-item active" data-nav="trends"><span>📈</span><span>Trends</span></button>
+      <button type="button" class="nav-item" data-nav="alerts"><span>🔔</span><span>Alerts</span></button>
+      <button type="button" class="nav-item" data-nav="profile"><span>👤</span><span>Profile</span></button>
+    </nav>
+  </section>
+
+  <!-- ALERTS -->
+  <section class="screen" id="screen-alerts">
+    <header class="app-bar">
+      <div class="title-wrap">
+        <div class="app-title">Alerts</div>
+        <div class="subtitle">Low / high notifications (demo)</div>
+      </div>
+      <div class="bar-actions">
+        <button type="button" class="icon-btn" id="alerts-back" aria-label="Back">←</button>
+      </div>
+    </header>
+    <main class="content">
+      <div class="card">
+        <div class="card-h"><h3>Out-of-range alert badge</h3><span class="pill" id="alerts-enabled-pill">Enabled</span></div>
+        <div class="card-b">
+          <div class="row" style="justify-content:space-between; align-items:center;">
+            <div class="row-main">
+              <div class="row-title">Low alert</div>
+              <div class="row-sub" id="low-alert-sub">Notify when below 70 mg/dL</div>
+            </div>
+            <span class="badge good" id="low-alert-on">ON</span>
+          </div>
+          <div style="height:10px;"></div>
+          <div class="row" style="justify-content:space-between; align-items:center;">
+            <div class="row-main">
+              <div class="row-title">High alert</div>
+              <div class="row-sub" id="high-alert-sub">Notify when above 180 mg/dL</div>
+            </div>
+            <span class="badge good" id="high-alert-on">ON</span>
+          </div>
+          <div style="height:10px;"></div>
+          <button type="button" class="btn" id="btn-test-alert">🔔 Test alert (demo)</button>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card">
+        <div class="card-h"><h3>Recent alerts</h3><span class="pill">2</span></div>
+        <div class="card-b">
+          <div class="list" id="alerts-list">
+            <div class="row">
+              <span class="badge bad">Low</span>
+              <div class="row-main">
+                <div class="row-title">71 mg/dL</div>
+                <div class="row-sub">2:18 PM • Treated</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="badge warn">High</span>
+              <div class="row-main">
+                <div class="row-title">186 mg/dL</div>
+                <div class="row-sub">6:35 PM • Post-dinner</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <nav class="bottom-nav" aria-label="Bottom navigation">
+      <button type="button" class="nav-item" data-nav="dashboard"><span>🏠</span><span>Dashboard</span></button>
+      <button type="button" class="nav-item" data-nav="logs"><span>📋</span><span>Logs</span></button>
+      <button type="button" class="nav-item" data-nav="trends"><span>📈</span><span>Trends</span></button>
+      <button type="button" class="nav-item active" data-nav="alerts"><span>🔔</span><span>Alerts</span></button>
+      <button type="button" class="nav-item" data-nav="profile"><span>👤</span><span>Profile</span></button>
+    </nav>
+  </section>
+
+  <!-- PROFILE -->
+  <section class="screen" id="screen-profile">
+    <header class="app-bar">
+      <div class="title-wrap">
+        <div class="app-title">Profile</div>
+        <div class="subtitle">Device + preferences (demo)</div>
+      </div>
+      <div class="bar-actions">
+        <button type="button" class="icon-btn" id="profile-back" aria-label="Back">←</button>
+      </div>
+    </header>
+    <main class="content">
+      <div class="card">
+        <div class="card-h"><h3>User health profile</h3><span class="pill" id="member-since">Member since —</span></div>
+        <div class="card-b">
+          <div class="row" style="align-items:center;">
+            <span class="badge good">👤</span>
+            <div class="row-main">
+              <div class="row-title" id="profile-name">Dionne (Demo)</div>
+              <div class="row-sub" id="profile-sub">Type 1 • Targets: 80–140 • Units: mg/dL</div>
+            </div>
+          </div>
+          <div style="height:10px;"></div>
+          <div class="pill" style="width:100%; justify-content:space-between;">
+            <span style="font-weight:950;">Health summary</span>
+            <span id="health-strip" style="font-weight:900; color:#bfeaff;">HbA1c — • 30d avg — • readings/day —</span>
+          </div>
+          <div style="height:10px;"></div>
+          <button class="btn" type="button" id="btn-export">⬇ Export report (CSV + print-to-PDF)</button>
+          <div style="height:10px;"></div>
+          <button class="btn" type="button" id="btn-logout">🚪 Logout (demo)</button>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+
+      <div class="card">
+        <div class="card-h"><h3>CGM device status</h3><span class="pill" id="sensor-name-pill">G7 (demo)</span></div>
+        <div class="card-b">
+          <div class="row" style="justify-content:space-between; align-items:center;">
+            <div class="row-main">
+              <div class="row-title">Battery</div>
+              <div class="row-sub" id="sensor-battery-sub">—</div>
+            </div>
+            <span class="badge good" id="sensor-battery-badge">—</span>
+          </div>
+          <div style="height:10px;"></div>
+          <div class="row" style="justify-content:space-between; align-items:center;">
+            <div class="row-main">
+              <div class="row-title">Signal + last sync</div>
+              <div class="row-sub" id="sensor-signal-sub">—</div>
+            </div>
+            <span class="badge warn" id="sensor-signal-badge">—</span>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row" style="align-items:flex-start;">
+            <span class="badge good">🎯</span>
+            <div class="row-main">
+              <div class="row-title">Target range settings</div>
+              <div class="row-sub" id="targets-sub">Low — • High —</div>
+              <div style="height:10px;"></div>
+              <div class="slider-row">
+                <div class="split">
+                  <div class="meta">Low threshold</div>
+                  <div class="pill" id="low-val-pill" style="font-weight:950;">—</div>
+                </div>
+                <input id="low-slider" type="range" min="50" max="120" step="1" value="80" aria-label="Low threshold slider">
+                <div class="split">
+                  <div class="meta">High threshold</div>
+                  <div class="pill" id="high-val-pill" style="font-weight:950;">—</div>
+                </div>
+                <input id="high-slider" type="range" min="120" max="250" step="1" value="140" aria-label="High threshold slider">
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row" style="align-items:flex-start;">
+            <span class="badge good">⚙️</span>
+            <div class="row-main">
+              <div class="row-title">App settings</div>
+              <div class="row-sub">Notifications, units, and data sharing (demo)</div>
+              <div style="height:10px;"></div>
+              <div class="list" style="gap:8px;">
+                <div class="row" style="justify-content:space-between; align-items:center; padding:10px 12px;">
+                  <div class="row-main">
+                    <div class="row-title">Notifications</div>
+                    <div class="row-sub" id="notif-sub">Enabled</div>
+                  </div>
+                  <button type="button" class="icon-btn" id="btn-toggle-notif" aria-label="Toggle notifications">✅</button>
+                </div>
+                <div class="row" style="justify-content:space-between; align-items:center; padding:10px 12px;">
+                  <div class="row-main">
+                    <div class="row-title">Units</div>
+                    <div class="row-sub" id="units-sub">mg/dL</div>
+                  </div>
+                  <button type="button" class="icon-btn" id="btn-toggle-units" aria-label="Toggle units">mg</button>
+                </div>
+                <div class="row" style="justify-content:space-between; align-items:center; padding:10px 12px;">
+                  <div class="row-main">
+                    <div class="row-title">Data sharing</div>
+                    <div class="row-sub" id="share-sub">Off</div>
+                  </div>
+                  <button type="button" class="icon-btn" id="btn-toggle-share" aria-label="Toggle data sharing">🚫</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <nav class="bottom-nav" aria-label="Bottom navigation">
+      <button type="button" class="nav-item" data-nav="dashboard"><span>🏠</span><span>Dashboard</span></button>
+      <button type="button" class="nav-item" data-nav="logs"><span>📋</span><span>Logs</span></button>
+      <button type="button" class="nav-item" data-nav="trends"><span>📈</span><span>Trends</span></button>
+      <button type="button" class="nav-item" data-nav="alerts"><span>🔔</span><span>Alerts</span></button>
+      <button type="button" class="nav-item active" data-nav="profile"><span>👤</span><span>Profile</span></button>
+    </nav>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <div class="t1" id="toast-t1">Alert</div>
+    <div class="t2" id="toast-t2">—</div>
+  </div>
+
+  <script>
+    (function(){
+      const $ = (s, el=document) => el.querySelector(s);
+      const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+
+      const screens = {
+        dashboard: $('#screen-dashboard'),
+        logs: $('#screen-logs'),
+        trends: $('#screen-trends'),
+        alerts: $('#screen-alerts'),
+        profile: $('#screen-profile'),
+      };
+
+      function show(name){
+        Object.values(screens).forEach(s => s.classList.remove('active'));
+        (screens[name] || screens.dashboard).classList.add('active');
+        $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.nav === name));
+      }
+
+      function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+      function round(n, d=0){
+        const p = Math.pow(10, d);
+        return Math.round(n*p)/p;
+      }
+      function fmtTime(d){
+        const h = d.getHours();
+        const m = String(d.getMinutes()).padStart(2,'0');
+        const am = h >= 12 ? 'PM' : 'AM';
+        const hh = ((h + 11) % 12) + 1;
+        return `${hh}:${m} ${am}`;
+      }
+      function minutesAgo(ts, now=Date.now()){
+        return Math.floor((now - ts)/60000);
+      }
+
+      // Bottom nav behavior
+      $$('.nav-item').forEach(btn => btn.addEventListener('click', () => show(btn.dataset.nav)));
+
+      // Back buttons (desktop-friendly)
+      ['logs','trends','alerts','profile'].forEach(k => {
+        const back = $('#' + k + '-back');
+        if (back) back.addEventListener('click', () => show('dashboard'));
+      });
+
+      // Settings button
+      const settingsBtn = $('#btn-settings');
+      if (settingsBtn) settingsBtn.addEventListener('click', () => show('profile'));
+
+      // Toast
+      const toast = $('#toast');
+      const toastT1 = $('#toast-t1');
+      const toastT2 = $('#toast-t2');
+      let toastTimer = null;
+      function showToast(title, msg){
+        if (!toast) return;
+        toastT1.textContent = title;
+        toastT2.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3600);
+      }
+
+      // --- Simulation state ---
+      const state = {
+        user: {
+          name: 'Dionne (Demo)',
+          diabetesType: 'Type 1',
+          memberSince: new Date(Date.now() - 1000*60*60*24*420),
+        },
+        settings: {
+          units: 'mgdl', // 'mgdl' | 'mmol'
+          notify: true,
+          share: false,
+          targetLow: 80,
+          targetHigh: 140,
+          alertLow: 70,
+          alertHigh: 180,
+        },
+        device: {
+          connected: true,
+          sensorName: 'G7 (demo)',
+          battery: 0.72,
+          signal: 0.88,
+          lastSyncAt: Date.now() - 1000*30,
+        },
+        data: {
+          readings: [], // {t:number, v:number} in mg/dL
+          events: [],   // {t:number, kind:'meal'|'insulin', type:string, carbs?:number, units?:number}
+          alerts: [],   // {t:number, kind:'low'|'high', v:number, note:string}
+        },
+        ui: {
+          period: 'day',
+          outOfRangeActive: false,
+        }
+      };
+
+      function mgdlToMmol(v){ return v / 18.0; }
+      function displayValue(vMgdl){
+        if (state.settings.units === 'mmol') return { num: round(mgdlToMmol(vMgdl), 1), unit: 'mmol/L' };
+        return { num: Math.round(vMgdl), unit: 'mg/dL' };
+      }
+
+      function readingStatus(vMgdl){
+        const { targetLow, targetHigh, alertLow, alertHigh } = state.settings;
+        if (vMgdl < alertLow) return { key:'critical-low', label:'Critical low', color:'rgba(251,113,133,.95)', emoji:'🆘' };
+        if (vMgdl > alertHigh) return { key:'critical-high', label:'Critical high', color:'rgba(251,113,133,.95)', emoji:'🆘' };
+        if (vMgdl < targetLow) return { key:'borderline-low', label:'Borderline low', color:'rgba(251,191,36,.95)', emoji:'⚠️' };
+        if (vMgdl > targetHigh) return { key:'borderline-high', label:'Borderline high', color:'rgba(251,191,36,.95)', emoji:'⚠️' };
+        return { key:'safe', label:'In range', color:'rgba(34,197,94,.95)', emoji:'✅' };
+      }
+
+      function trendFromDelta(deltaMgdlPerMin){
+        if (deltaMgdlPerMin >= 3) return { arrow:'⬆⬆', text:'rising fast' };
+        if (deltaMgdlPerMin >= 2) return { arrow:'⬆', text:'rising' };
+        if (deltaMgdlPerMin >= 1) return { arrow:'↗', text:'rising slowly' };
+        if (deltaMgdlPerMin <= -3) return { arrow:'⬇⬇', text:'falling fast' };
+        if (deltaMgdlPerMin <= -2) return { arrow:'⬇', text:'falling' };
+        if (deltaMgdlPerMin <= -1) return { arrow:'↘', text:'falling slowly' };
+        return { arrow:'→', text:'stable' };
+      }
+
+      // Seed 90 days at 5-minute resolution
+      function mulberry32(seed){
+        return function(){
+          let t = seed += 0x6D2B79F5;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function gaussian(rand){
+        let u = 0, v = 0;
+        while(u === 0) u = rand();
+        while(v === 0) v = rand();
+        return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+      }
+      function buildSeedData(){
+        const rand = mulberry32(1337);
+        const now = Date.now();
+        const start = now - 1000*60*60*24*90;
+        const step = 1000*60*5;
+        let v = 110;
+
+        const mealTypes = [
+          { type:'Breakfast', hour: 8 },
+          { type:'Lunch', hour: 13 },
+          { type:'Dinner', hour: 19 },
+          { type:'Snack', hour: 16 },
+        ];
+
+        for (let t = start; t <= now; t += step){
+          const d = new Date(t);
+          const h = d.getHours();
+          const minute = d.getMinutes();
+
+          const circ = 6*Math.sin((2*Math.PI*(h*60 + minute))/1440 - 1.2);
+          const noise = gaussian(rand) * 2.8;
+          v += (gaussian(rand) * 0.6) + circ*0.03 + noise*0.08;
+          if (rand() < 0.0025) v += 25 + rand()*40;
+          if (rand() < 0.0020) v -= 18 + rand()*28;
+          v = clamp(v, 55, 260);
+          state.data.readings.push({ t, v: round(v, 1) });
+
+          for (const mt of mealTypes){
+            if (h === mt.hour && minute === 0 && rand() < 0.23){
+              const carbs = Math.round(25 + rand()*50);
+              state.data.events.push({ t, kind:'meal', type: mt.type, carbs });
+            }
+          }
+          if ((h === 8 || h === 13 || h === 19) && minute === 0 && rand() < 0.18){
+            const units = round(2 + rand()*6, 1);
+            state.data.events.push({ t: t - 1000*60*10, kind:'insulin', type:'Bolus', units });
+          }
+        }
+
+        const byTime = new Map(state.data.readings.map(r => [r.t, r]));
+        for (const e of state.data.events){
+          if (e.kind !== 'meal') continue;
+          const bump = clamp((e.carbs || 30) * 0.6, 12, 55);
+          for (let i = 0; i <= 30; i++){
+            const tt = e.t + i*step;
+            const r = byTime.get(tt);
+            if (!r) continue;
+            const decay = Math.exp(-i/10.5);
+            r.v = round(clamp(r.v + bump*decay*0.55, 55, 260), 1);
+          }
+        }
+      }
+      function ensureSeeded(){
+        if (state.data.readings.length) return;
+        buildSeedData();
+      }
+      function latestReading(){
+        return state.data.readings[state.data.readings.length - 1];
+      }
+      function getReadingsSince(msAgo){
+        const cutoff = Date.now() - msAgo;
+        const arr = state.data.readings;
+        const out = [];
+        for (let i = arr.length - 1; i >= 0; i--){
+          if (arr[i].t < cutoff) break;
+          out.push(arr[i]);
+        }
+        return out.reverse();
+      }
+      function statsForRange(readings){
+        if (!readings.length) return { avg:0, low:0, high:0, tir:0, min:0, max:0, n:0 };
+        const { targetLow, targetHigh } = state.settings;
+        let sum = 0, inRange = 0, low = 0, high = 0;
+        let min = Infinity, max = -Infinity;
+        for (const r of readings){
+          const v = r.v;
+          sum += v;
+          min = Math.min(min, v);
+          max = Math.max(max, v);
+          if (v < targetLow) low++;
+          else if (v > targetHigh) high++;
+          else inRange++;
+        }
+        const n = readings.length;
+        return { avg: sum/n, low, high, tir: inRange/n, min, max, n };
+      }
+
+      // --- Charts ---
+      function roundRectPath(ctx, x, y, w, h, r){
+        const rr = Math.min(r, w/2, h/2);
+        ctx.beginPath();
+        ctx.moveTo(x+rr, y);
+        ctx.arcTo(x+w, y, x+w, y+h, rr);
+        ctx.arcTo(x+w, y+h, x, y+h, rr);
+        ctx.arcTo(x, y+h, x, y, rr);
+        ctx.arcTo(x, y, x+w, y, rr);
+        ctx.closePath();
+      }
+
+      function withHiDpi(canvas, draw){
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const cssW = canvas.clientWidth || 1;
+        const cssH = canvas.clientHeight || 1;
+        const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+        const w = Math.floor(cssW * dpr);
+        const h = Math.floor(cssH * dpr);
+        if (canvas.width !== w) canvas.width = w;
+        if (canvas.height !== h) canvas.height = h;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        draw(ctx, cssW, cssH);
+      }
+
+      function drawLineChart(canvas, readings, opts){
+        const o = Object.assign({
+          low: state.settings.targetLow,
+          high: state.settings.targetHigh,
+          showBands: true,
+          colorA: '#38bdf8',
+          colorB: '#a78bfa',
+          lineWidth: 2.8,
+          pad: 14,
+          yMin: 50,
+          yMax: 250,
+          annotateLast: true,
+          overlayReadings: null,
+        }, opts || {});
+
+        withHiDpi(canvas, (ctx, W, H) => {
+          ctx.clearRect(0,0,W,H);
+          ctx.fillStyle = 'rgba(16,28,54,.35)';
+          ctx.fillRect(0,0,W,H);
+
+          const pad = o.pad;
+          const x0 = pad, y0 = pad, x1 = W - pad, y1 = H - pad;
+          const innerW = x1 - x0, innerH = y1 - y0;
+          const yFor = (v) => y0 + (1 - (v - o.yMin)/(o.yMax - o.yMin))*innerH;
+
+          if (o.showBands){
+            const yLow = yFor(o.low);
+            const yHigh = yFor(o.high);
+            ctx.fillStyle = 'rgba(34,197,94,.10)';
+            ctx.fillRect(x0, yHigh, innerW, yLow - yHigh);
+            ctx.fillStyle = 'rgba(251,113,133,.08)';
+            ctx.fillRect(x0, yLow, innerW, y1 - yLow);
+            ctx.fillStyle = 'rgba(251,191,36,.08)';
+            ctx.fillRect(x0, y0, innerW, yHigh - y0);
+
+            ctx.strokeStyle = 'rgba(231,238,252,.16)';
+            ctx.setLineDash([5,6]);
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(x0, yLow); ctx.lineTo(x1, yLow); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x0, yHigh); ctx.lineTo(x1, yHigh); ctx.stroke();
+            ctx.setLineDash([]);
+          }
+
+          const series = (readings && readings.length) ? readings : [];
+          if (series.length < 2) return;
+          const minT = series[0].t;
+          const maxT = series[series.length - 1].t;
+          const xFor = (t) => x0 + ((t - minT) / Math.max(1, (maxT - minT))) * innerW;
+
+          const grad = ctx.createLinearGradient(x0, 0, x1, 0);
+          grad.addColorStop(0, o.colorA);
+          grad.addColorStop(1, o.colorB);
+
+          // Overlay
+          if (Array.isArray(o.overlayReadings) && o.overlayReadings.length > 1){
+            const ov = o.overlayReadings;
+            const minTo = ov[0].t, maxTo = ov[ov.length - 1].t;
+            const xForOv = (t) => x0 + ((t - minTo) / Math.max(1, (maxTo - minTo))) * innerW;
+            ctx.save();
+            ctx.globalAlpha = 0.85;
+            ctx.lineWidth = 2.4;
+            ctx.strokeStyle = '#a78bfa';
+            ctx.beginPath();
+            for (let i = 0; i < ov.length; i++){
+              const x = xForOv(ov[i].t);
+              const y = yFor(ov[i].v);
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          ctx.lineWidth = o.lineWidth;
+          ctx.lineJoin = 'round';
+          ctx.lineCap = 'round';
+          ctx.strokeStyle = grad;
+          ctx.beginPath();
+          for (let i = 0; i < series.length; i++){
+            const x = xFor(series[i].t);
+            const y = yFor(series[i].v);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          if (o.annotateLast){
+            const last = series[series.length - 1];
+            const x = xFor(last.t);
+            const y = yFor(last.v);
+            ctx.fillStyle = '#e7eefc';
+            ctx.beginPath(); ctx.arc(x, y, 4.2, 0, Math.PI*2); ctx.fill();
+          }
+        });
+      }
+
+      function drawHeatmap(canvas, days){
+        withHiDpi(canvas, (ctx, W, H) => {
+          ctx.clearRect(0,0,W,H);
+          ctx.fillStyle = 'rgba(16,28,54,.35)';
+          ctx.fillRect(0,0,W,H);
+
+          const pad = 14;
+          const cols = 14;
+          const rows = Math.ceil(days.length / cols);
+          const gap = 6;
+          const cellW = (W - pad*2 - gap*(cols-1)) / cols;
+          const cellH = (H - pad*2 - gap*(rows-1)) / rows;
+
+          function colorFor(score){
+            const s = clamp(score,0,1);
+            const r = Math.round(34 + (251-34)*s);
+            const g = Math.round(197 + (113-197)*s);
+            const b = Math.round(94 + (133-94)*s);
+            return `rgba(${r},${g},${b},.85)`;
+          }
+
+          ctx.strokeStyle = 'rgba(157,176,208,.18)';
+          ctx.lineWidth = 1;
+          for (let i = 0; i < days.length; i++){
+            const rr = Math.floor(i / cols);
+            const c = i % cols;
+            const x = pad + c*(cellW + gap);
+            const y = pad + rr*(cellH + gap);
+            ctx.fillStyle = colorFor(days[i].score);
+            roundRectPath(ctx, x, y, cellW, cellH, 10);
+            ctx.fill();
+            ctx.stroke();
+          }
+
+          ctx.fillStyle = 'rgba(231,238,252,.70)';
+          ctx.font = '700 12px "Instrument Sans", system-ui, sans-serif';
+          ctx.fillText('Last 28 days', pad, 14);
+        });
+      }
+
+      function drawMealImpact(canvas, impacts){
+        withHiDpi(canvas, (ctx, W, H) => {
+          ctx.clearRect(0,0,W,H);
+          ctx.fillStyle = 'rgba(16,28,54,.35)';
+          ctx.fillRect(0,0,W,H);
+
+          const pad = 16;
+          const x0 = pad, y0 = pad + 10, x1 = W - pad, y1 = H - pad;
+          const innerW = x1 - x0;
+          const rowH = Math.max(26, (y1 - y0) / Math.max(1, impacts.length));
+          const max = Math.max(20, ...impacts.map(i => i.delta));
+
+          ctx.font = '800 13px "Instrument Sans", system-ui, sans-serif';
+          for (let i = 0; i < impacts.length; i++){
+            const it = impacts[i];
+            const y = y0 + i*rowH + 10;
+            const w = innerW * (it.delta / max);
+            const grad = ctx.createLinearGradient(x0, 0, x0 + w, 0);
+            grad.addColorStop(0, '#38bdf8');
+            grad.addColorStop(1, '#a78bfa');
+            ctx.fillStyle = 'rgba(157,176,208,.14)';
+            roundRectPath(ctx, x0, y - 10, innerW, 18, 9); ctx.fill();
+            ctx.fillStyle = grad;
+            roundRectPath(ctx, x0, y - 10, w, 18, 9); ctx.fill();
+
+            ctx.fillStyle = 'rgba(231,238,252,.92)';
+            ctx.fillText(it.label, x0, y - 16);
+            ctx.fillStyle = 'rgba(157,176,208,.90)';
+            ctx.fillText(`+${Math.round(it.delta)} mg/dL`, x0 + innerW - 96, y - 16);
+          }
+
+          ctx.fillStyle = 'rgba(231,238,252,.70)';
+          ctx.font = '700 12px "Instrument Sans", system-ui, sans-serif';
+          ctx.fillText('Meal impact (demo)', pad, 14);
+        });
+      }
+
+      // --- Elements ---
+      const el = {
+        devDot: $('#dev-dot'),
+        devPill: $('#dev-pill'),
+        navAlertBadge: $('#nav-alert-badge'),
+        updatedText: $('#updated-text'),
+        curNum: $('#cur-num'),
+        curUnit: $('#cur-unit'),
+        curTrend: $('#cur-trend'),
+        curMeta: $('#cur-meta'),
+        curRing: $('#cur-ring'),
+        curRingEmoji: $('#cur-ring-emoji'),
+        a1cPill: $('#a1c-pill'),
+        rangeFill: $('#range-fill'),
+        markLow: $('#mark-low'),
+        markHigh: $('#mark-high'),
+        statTir: $('#stat-tir'),
+        statAvg: $('#stat-avg'),
+        statLast: $('#stat-last'),
+        legendRange: $('#legend-range'),
+        legendStatus: $('#legend-status'),
+        legendPeak: $('#legend-peak'),
+        legendLow: $('#legend-low'),
+        chart24h: $('#chart-24h'),
+        mealInsulinList: $('#meal-insulin-list'),
+        mealCountPill: $('#meal-count-pill'),
+        dailyCountPill: $('#daily-count-pill'),
+        periodPill: $('#period-pill'),
+        periodToggle: $('#period-toggle'),
+        chartPeriod: $('#chart-period'),
+        periodLegend: $('#period-legend'),
+        tirPill: $('#tir-pill'),
+        tirLow: $('#tir-low'),
+        tirNorm: $('#tir-norm'),
+        tirHigh: $('#tir-high'),
+        tirLowV: $('#tir-low-v'),
+        tirNormV: $('#tir-norm-v'),
+        tirHighV: $('#tir-high-v'),
+        chartHeatmap: $('#chart-heatmap'),
+        heatmapMeta: $('#heatmap-meta'),
+        chartMealImpact: $('#chart-meal-impact'),
+        chartWeekCompare: $('#chart-week-compare'),
+        aiInsightsList: $('#ai-insights-list'),
+        recommendationText: $('#recommendation-text'),
+        lowAlertSub: $('#low-alert-sub'),
+        highAlertSub: $('#high-alert-sub'),
+        alertsList: $('#alerts-list'),
+        lowAlertOn: $('#low-alert-on'),
+        highAlertOn: $('#high-alert-on'),
+        memberSince: $('#member-since'),
+        profileName: $('#profile-name'),
+        profileSub: $('#profile-sub'),
+        healthStrip: $('#health-strip'),
+        sensorNamePill: $('#sensor-name-pill'),
+        sensorBatterySub: $('#sensor-battery-sub'),
+        sensorBatteryBadge: $('#sensor-battery-badge'),
+        sensorSignalSub: $('#sensor-signal-sub'),
+        sensorSignalBadge: $('#sensor-signal-badge'),
+        targetsSub: $('#targets-sub'),
+        lowSlider: $('#low-slider'),
+        highSlider: $('#high-slider'),
+        lowValPill: $('#low-val-pill'),
+        highValPill: $('#high-val-pill'),
+        notifSub: $('#notif-sub'),
+        unitsSub: $('#units-sub'),
+        shareSub: $('#share-sub'),
+        btnToggleNotif: $('#btn-toggle-notif'),
+        btnToggleUnits: $('#btn-toggle-units'),
+        btnToggleShare: $('#btn-toggle-share'),
+        btnExport: $('#btn-export'),
+        btnLogout: $('#btn-logout'),
+        btnAddLog: $('#btn-add-log'),
+        btnClearLogs: $('#btn-clear-logs'),
+        btnTestAlert: $('#btn-test-alert'),
+      };
+
+      function setRing(status){
+        if (!el.curRing) return;
+        el.curRing.style.background =
+          `radial-gradient(circle at 50% 50%, rgba(15,23,42,.95) 0 56%, transparent 57%),` +
+          `conic-gradient(from 210deg, ${status.color}, rgba(157,176,208,.18))`;
+        if (el.curRingEmoji) el.curRingEmoji.textContent = status.emoji;
+      }
+
+      function renderDevice(){
+        const d = state.device;
+        if (el.devPill) el.devPill.textContent = d.connected ? 'Connected' : 'Disconnected';
+        if (el.devDot){
+          el.devDot.style.background = d.connected ? 'var(--good)' : 'var(--bad)';
+          el.devDot.style.boxShadow = d.connected ? '0 0 0 3px rgba(34,197,94,.12)' : '0 0 0 3px rgba(251,113,133,.12)';
+        }
+        if (el.sensorNamePill) el.sensorNamePill.textContent = d.sensorName;
+        const battPct = Math.round(d.battery * 100);
+        const sigPct = Math.round(d.signal * 100);
+        if (el.sensorBatterySub) el.sensorBatterySub.textContent = `${battPct}% remaining`;
+        if (el.sensorBatteryBadge){
+          el.sensorBatteryBadge.textContent = battPct >= 30 ? 'OK' : 'LOW';
+          el.sensorBatteryBadge.className = `badge ${battPct >= 30 ? 'good' : 'warn'}`;
+        }
+        const mins = minutesAgo(d.lastSyncAt);
+        if (el.sensorSignalSub) el.sensorSignalSub.textContent = `Signal ${sigPct}% • Last sync ${mins <= 0 ? 'now' : mins + 'm ago'}`;
+        if (el.sensorSignalBadge){
+          el.sensorSignalBadge.textContent = sigPct >= 60 ? 'Good' : 'Weak';
+          el.sensorSignalBadge.className = `badge ${sigPct >= 60 ? 'good' : 'warn'}`;
+        }
+      }
+
+      function renderSettings(){
+        const s = state.settings;
+        if (el.targetsSub) el.targetsSub.textContent = `Low ${s.targetLow} • High ${s.targetHigh} (${s.units === 'mgdl' ? 'mg/dL' : 'mmol/L'})`;
+        if (el.lowValPill) el.lowValPill.textContent = `${s.targetLow}`;
+        if (el.highValPill) el.highValPill.textContent = `${s.targetHigh}`;
+        if (el.lowSlider) el.lowSlider.value = String(s.targetLow);
+        if (el.highSlider) el.highSlider.value = String(s.targetHigh);
+        if (el.unitsSub) el.unitsSub.textContent = s.units === 'mgdl' ? 'mg/dL' : 'mmol/L';
+        if (el.btnToggleUnits) el.btnToggleUnits.textContent = s.units === 'mgdl' ? 'mg' : 'mm';
+        if (el.notifSub) el.notifSub.textContent = s.notify ? 'Enabled' : 'Disabled';
+        if (el.btnToggleNotif) el.btnToggleNotif.textContent = s.notify ? '✅' : '🚫';
+        if (el.shareSub) el.shareSub.textContent = s.share ? 'On' : 'Off';
+        if (el.btnToggleShare) el.btnToggleShare.textContent = s.share ? '✅' : '🚫';
+
+        if (el.lowAlertSub) el.lowAlertSub.textContent = `Notify when below ${s.alertLow} mg/dL`;
+        if (el.highAlertSub) el.highAlertSub.textContent = `Notify when above ${s.alertHigh} mg/dL`;
+        if (el.lowAlertOn){
+          el.lowAlertOn.textContent = s.notify ? 'ON' : 'OFF';
+          el.lowAlertOn.className = `badge ${s.notify ? 'good' : 'warn'}`;
+        }
+        if (el.highAlertOn){
+          el.highAlertOn.textContent = s.notify ? 'ON' : 'OFF';
+          el.highAlertOn.className = `badge ${s.notify ? 'good' : 'warn'}`;
+        }
+      }
+
+      function renderProfile(){
+        if (el.profileName) el.profileName.textContent = state.user.name;
+        if (el.memberSince) el.memberSince.textContent = `Member since ${state.user.memberSince.toLocaleDateString()}`;
+        if (el.profileSub) el.profileSub.textContent = `${state.user.diabetesType} • Targets: ${state.settings.targetLow}–${state.settings.targetHigh} • Units: ${state.settings.units === 'mgdl' ? 'mg/dL' : 'mmol/L'}`;
+
+        const r30 = getReadingsSince(1000*60*60*24*30);
+        const s30 = statsForRange(r30);
+        const a1c = (s30.avg + 46.7) / 28.7;
+        const perDay = r30.length / 30;
+        if (el.healthStrip){
+          el.healthStrip.textContent = `HbA1c ${round(a1c,1)}% • 30d avg ${Math.round(s30.avg)} • readings/day ${round(perDay,1)}`;
+        }
+      }
+
+      function renderDashboard(){
+        const last = latestReading();
+        if (!last) return;
+        const last2 = state.data.readings[state.data.readings.length - 2] || last;
+        const dtMin = Math.max(1, (last.t - last2.t) / 60000);
+        const delta = (last.v - last2.v) / dtMin;
+        const tr = trendFromDelta(delta);
+        const st = readingStatus(last.v);
+
+        const disp = displayValue(last.v);
+        if (el.curNum) el.curNum.textContent = String(disp.num);
+        if (el.curUnit) el.curUnit.textContent = disp.unit;
+        if (el.curTrend) el.curTrend.textContent = `${tr.arrow} ${Math.round(delta*5)}`;
+        if (el.curMeta) el.curMeta.textContent = `Target range ${state.settings.targetLow}–${state.settings.targetHigh} • ${st.label}`;
+        setRing(st);
+
+        const mins = minutesAgo(last.t);
+        if (el.updatedText) el.updatedText.textContent = mins <= 0 ? 'Updated just now' : `Updated ${mins}m ago`;
+
+        const min = 50, max = 250;
+        const lo = (state.settings.targetLow - min) / (max - min);
+        const hi = (state.settings.targetHigh - min) / (max - min);
+        if (el.markLow) el.markLow.style.left = `${clamp(lo,0,1)*100}%`;
+        if (el.markHigh) el.markHigh.style.left = `${clamp(hi,0,1)*100}%`;
+        const cur = (last.v - min)/(max - min);
+        if (el.rangeFill) el.rangeFill.style.width = `${clamp(cur,0,1)*100}%`;
+        if (el.rangeFill){
+          el.rangeFill.style.background = st.key === 'safe'
+            ? 'linear-gradient(90deg, rgba(34,197,94,.9), rgba(56,189,248,.95))'
+            : (st.key.includes('critical') ? 'linear-gradient(90deg, rgba(251,113,133,.95), rgba(251,191,36,.85))'
+               : 'linear-gradient(90deg, rgba(251,191,36,.85), rgba(56,189,248,.90))');
+        }
+
+        const r24 = getReadingsSince(1000*60*60*24);
+        const s24 = statsForRange(r24);
+        if (el.statTir) el.statTir.textContent = `${Math.round(s24.tir*100)}%`;
+        if (el.statAvg) el.statAvg.textContent = String(Math.round(s24.avg));
+        if (el.statLast) el.statLast.textContent = String(Math.round(last.v));
+
+        const a1c = (s24.avg + 46.7) / 28.7;
+        if (el.a1cPill) el.a1cPill.textContent = `${round(a1c, 1)}%`;
+
+        const out = (last.v < state.settings.alertLow) || (last.v > state.settings.alertHigh);
+        state.ui.outOfRangeActive = out;
+        if (el.navAlertBadge){
+          el.navAlertBadge.style.display = (out && state.settings.notify) ? 'inline-flex' : 'none';
+          el.navAlertBadge.textContent = out ? '!' : '';
+        }
+
+        if (el.legendRange) el.legendRange.textContent = `Range ${state.settings.targetLow}–${state.settings.targetHigh}`;
+        if (el.legendStatus){
+          const c = st.key === 'safe' ? '#bff3cf' : (st.key.includes('critical') ? '#ffd0d8' : '#ffe7a7');
+          el.legendStatus.innerHTML = `<span style="color:${c}; font-weight:900;">${st.label}</span>`;
+        }
+        if (el.legendPeak) el.legendPeak.textContent = `Peak ${Math.round(s24.max)}`;
+        if (el.legendLow) el.legendLow.textContent = `Low ${Math.round(s24.min)}`;
+        if (el.chart24h) drawLineChart(el.chart24h, r24, { low: state.settings.targetLow, high: state.settings.targetHigh, yMin: 50, yMax: 250 });
+      }
+
+      function renderMealInsulin(){
+        const now = Date.now();
+        const recent = state.data.events
+          .filter(e => e.t >= now - 1000*60*60*24*2)
+          .slice(-12)
+          .reverse();
+
+        if (el.mealCountPill) el.mealCountPill.textContent = `${recent.length} items`;
+        if (!el.mealInsulinList) return;
+        el.mealInsulinList.innerHTML = '';
+        for (const e of recent){
+          const row = document.createElement('div');
+          row.className = 'row';
+          const when = fmtTime(new Date(e.t));
+          if (e.kind === 'meal'){
+            const emoji = e.type === 'Breakfast' ? '🍳' : e.type === 'Lunch' ? '🥪' : e.type === 'Dinner' ? '🍝' : '🍎';
+            row.innerHTML = `
+              <span class="badge good">${emoji}</span>
+              <div class="row-main">
+                <div class="row-title">${e.type}</div>
+                <div class="row-sub">${when} • ${e.carbs || 0}g carbs</div>
+              </div>
+            `;
+          } else {
+            row.innerHTML = `
+              <span class="badge good">💉</span>
+              <div class="row-main">
+                <div class="row-title">Insulin</div>
+                <div class="row-sub">${when} • ${e.type} • ${(e.units ?? 0)}u</div>
+              </div>
+            `;
+          }
+          el.mealInsulinList.appendChild(row);
+        }
+      }
+
+      function renderDailyLogs(){
+        const todayStart = new Date();
+        todayStart.setHours(0,0,0,0);
+        const allToday = state.data.readings.filter(r => r.t >= todayStart.getTime());
+
+        // Reduce duplicates/noise: show at most ~every 15 minutes and cap list size.
+        const stride = 3; // 3 * 5min = 15 minutes
+        const downsampled = [];
+        for (let i = allToday.length - 1; i >= 0; i -= stride){
+          downsampled.push(allToday[i]);
+          if (downsampled.length >= 24) break; // show last 24 items max
+        }
+        const readings = downsampled; // newest -> older (already)
+        if (el.dailyCountPill) el.dailyCountPill.textContent = `${readings.length} readings (15m)`;
+        const logsList = $('#logs-list');
+        if (!logsList) return;
+        logsList.innerHTML = '';
+        for (const r of readings){
+          const idx = state.data.readings.findIndex(x => x.t === r.t);
+          const prev = idx > 0 ? state.data.readings[idx - 1] : r;
+          const dtMin = Math.max(1, (r.t - prev.t)/60000);
+          const delta = (r.v - prev.v) / dtMin;
+          const tr = trendFromDelta(delta);
+          const st = readingStatus(r.v);
+          const disp = displayValue(r.v);
+
+          const ev = state.data.events
+            .filter(e => e.t <= r.t && e.t >= r.t - 1000*60*90)
+            .slice(-1)[0];
+          const tag = ev ? ev.type : '';
+          const tagHtml = tag ? `<span class="tag">${ev.kind === 'meal' ? '🍽️' : '💉'} ${tag}</span>` : '';
+
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = `
+            <span class="badge ${st.key==='safe' ? 'good' : (st.key.includes('critical') ? 'bad' : 'warn')}">${disp.num}</span>
+            <div class="row-main">
+              <div class="row-title">Glucose reading${tagHtml}</div>
+              <div class="row-sub">${fmtTime(new Date(r.t))} • ${tr.arrow} ${tr.text}</div>
+            </div>
+          `;
+          logsList.appendChild(row);
+        }
+      }
+
+      function pct(n){ return `${Math.round(n*100)}%`; }
+      function renderTir(periodReadings){
+        const { targetLow, targetHigh } = state.settings;
+        const r = periodReadings || [];
+        if (!r.length) return;
+        let low=0, norm=0, high=0;
+        for (const x of r){
+          if (x.v < targetLow) low++;
+          else if (x.v > targetHigh) high++;
+          else norm++;
+        }
+        const n = r.length;
+        const pLow = low/n, pNorm = norm/n, pHigh = high/n;
+        if (el.tirLow) el.tirLow.style.width = `${pLow*100}%`;
+        if (el.tirNorm) el.tirNorm.style.width = `${pNorm*100}%`;
+        if (el.tirHigh) el.tirHigh.style.width = `${pHigh*100}%`;
+        if (el.tirLowV) el.tirLowV.textContent = pct(pLow);
+        if (el.tirNormV) el.tirNormV.textContent = pct(pNorm);
+        if (el.tirHighV) el.tirHighV.textContent = pct(pHigh);
+        if (el.tirPill) el.tirPill.textContent = `Normal ${pct(pNorm)}`;
+      }
+
+      function readingsForPeriod(period){
+        const now = Date.now();
+        if (period === 'day') return getReadingsSince(1000*60*60*24);
+        if (period === 'week') return getReadingsSince(1000*60*60*24*7);
+        if (period === 'month') return getReadingsSince(1000*60*60*24*30);
+        return state.data.readings.filter(r => r.t >= now - 1000*60*60*24*90);
+      }
+
+      function bestStabilityDay(nDays){
+        const end = new Date(); end.setHours(0,0,0,0);
+        let best = null;
+        for (let i = 0; i < nDays; i++){
+          const d0 = new Date(end.getTime() - i*86400000);
+          const d1 = new Date(d0.getTime() + 86400000);
+          const rr = state.data.readings.filter(r => r.t >= d0.getTime() && r.t < d1.getTime());
+          if (rr.length < 50) continue;
+          const avg = rr.reduce((a,x)=>a+x.v,0)/rr.length;
+          const variance = rr.reduce((a,x)=>a+Math.pow(x.v-avg,2),0)/rr.length;
+          const sd = Math.sqrt(variance);
+          const score = clamp((sd - 8) / 30, 0, 1);
+          if (!best || score < best.score) best = { date:d0, score };
+        }
+        return best;
+      }
+
+      function buildInsights(){
+        const out = [];
+        const r7 = getReadingsSince(1000*60*60*24*7);
+        const s7 = statsForRange(r7);
+        out.push({
+          title: 'Your best-performing window',
+          body: `Most stable readings occurred mid-morning. Weekly avg ${Math.round(s7.avg)} mg/dL with TIR ${Math.round(s7.tir*100)}%.`,
+          tip: 'If dinner spikes are common, try a short post-dinner walk (demo).'
+        });
+        const dinners = state.data.events.filter(e => e.kind === 'meal' && e.type === 'Dinner').slice(-14);
+        let spikeCount = 0;
+        for (const e of dinners){
+          const post = state.data.readings.find(r => r.t >= e.t + 1000*60*60 && r.t <= e.t + 1000*60*60*2);
+          if (post && post.v > state.settings.targetHigh + 25) spikeCount++;
+        }
+        out.push({
+          title: 'Recurring post-meal spikes',
+          body: spikeCount ? `${spikeCount} recent dinners showed a rise above target about 1–2 hours after eating.` : 'No consistent post-dinner spike detected recently (demo).',
+          tip: 'Consider pre-bolusing 10–15 minutes earlier for dinner (demo).'
+        });
+        const lows = r7.filter(r => r.v < state.settings.alertLow).length;
+        out.push({
+          title: 'Low-risk check',
+          body: lows ? `You had ${lows} low readings in the last 7 days. Keep quick carbs nearby.` : 'Low readings were rare this week (demo).',
+          tip: 'If you exercise in the afternoon, monitor for delayed lows (demo).'
+        });
+        const bestDay = bestStabilityDay(14);
+        out.push({
+          title: 'Best stability day',
+          body: bestDay ? `Most stable day in the last 2 weeks: ${bestDay.date.toLocaleDateString()} (stability score ${(1-bestDay.score).toFixed(2)}).` : 'Not enough data to compute best day (demo).',
+          tip: 'Repeat routines from your most stable days (demo).'
+        });
+        return out;
+      }
+
+      function renderTrends(){
+        const p = state.ui.period;
+        if (el.periodPill) el.periodPill.textContent = p === '90d' ? '90 days' : (p[0].toUpperCase() + p.slice(1));
+        const readings = readingsForPeriod(p);
+        if (el.chartPeriod) drawLineChart(el.chartPeriod, readings, { low: state.settings.targetLow, high: state.settings.targetHigh, yMin: 50, yMax: 250 });
+
+        const s = statsForRange(readings);
+        const a1c = (s.avg + 46.7) / 28.7;
+        if (el.periodLegend){
+          el.periodLegend.innerHTML = '';
+          const pills = [
+            `Avg ${Math.round(s.avg)}`,
+            `TIR ${Math.round(s.tir*100)}%`,
+            `Lows ${s.low}`,
+            `Highs ${s.high}`,
+            `A1C ${round(a1c,1)}%`
+          ];
+          for (const t of pills){
+            const sp = document.createElement('span');
+            sp.className = 'pill';
+            sp.textContent = t;
+            el.periodLegend.appendChild(sp);
+          }
+        }
+        renderTir(readings);
+
+        const days = [];
+        const end = new Date();
+        end.setHours(0,0,0,0);
+        for (let i = 27; i >= 0; i--){
+          const d0 = new Date(end.getTime() - i*86400000);
+          const d1 = new Date(d0.getTime() + 86400000);
+          const rr = state.data.readings.filter(r => r.t >= d0.getTime() && r.t < d1.getTime());
+          let score = 0.5;
+          if (rr.length){
+            const avg = rr.reduce((a,x)=>a+x.v,0)/rr.length;
+            const variance = rr.reduce((a,x)=>a+Math.pow(x.v-avg,2),0)/rr.length;
+            const sd = Math.sqrt(variance);
+            score = clamp((sd - 8) / 30, 0, 1);
+          }
+          days.push({ date:d0, score, label:d0.toLocaleDateString() });
+        }
+        if (el.chartHeatmap) drawHeatmap(el.chartHeatmap, days);
+        if (el.heatmapMeta){
+          const unstable = days.filter(x => x.score > 0.65).length;
+          el.heatmapMeta.textContent = `Last 28 days: ${unstable} more-volatile days (demo).`;
+        }
+
+        const mealTypes = ['Breakfast','Lunch','Dinner','Snack'];
+        const impacts = [];
+        for (const mt of mealTypes){
+          const evs = state.data.events.filter(e => e.kind === 'meal' && e.type === mt).slice(-60);
+          const deltas = [];
+          for (const e of evs){
+            const pre = state.data.readings.find(r => r.t >= e.t - 1000*60*10 && r.t <= e.t) || null;
+            const post = state.data.readings.find(r => r.t >= e.t + 1000*60*110 && r.t <= e.t + 1000*60*130) || null;
+            if (pre && post) deltas.push(Math.max(0, post.v - pre.v));
+          }
+          const avgDelta = deltas.length ? deltas.reduce((a,x)=>a+x,0)/deltas.length : 0;
+          impacts.push({ label: mt, delta: avgDelta });
+        }
+        if (el.chartMealImpact) drawMealImpact(el.chartMealImpact, impacts);
+
+        const thisWeek = getReadingsSince(1000*60*60*24*7);
+        const lastWeek = state.data.readings.filter(r => r.t >= Date.now() - 1000*60*60*24*14 && r.t < Date.now() - 1000*60*60*24*7);
+        if (el.chartWeekCompare) drawLineChart(el.chartWeekCompare, thisWeek, { low: state.settings.targetLow, high: state.settings.targetHigh, overlayReadings: lastWeek });
+
+        const insights = buildInsights();
+        if (el.aiInsightsList){
+          el.aiInsightsList.innerHTML = '';
+          for (const ins of insights.slice(0, 4)){
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.innerHTML = `
+              <span class="badge good">🤖</span>
+              <div class="row-main">
+                <div class="row-title">${ins.title}</div>
+                <div class="row-sub">${ins.body}</div>
+              </div>
+            `;
+            el.aiInsightsList.appendChild(row);
+          }
+        }
+        if (el.recommendationText){
+          el.recommendationText.textContent = insights[0]?.tip || 'Aim for a 10–15 minute walk after your largest meal (demo).';
+        }
+      }
+
+      function renderAlerts(){
+        if (!el.alertsList) return;
+        const recent = state.data.alerts.slice(-8).reverse();
+        if (!recent.length) return;
+        el.alertsList.innerHTML = '';
+        for (const a of recent){
+          const row = document.createElement('div');
+          row.className = 'row';
+          const kindBadge = a.kind === 'low' ? 'bad' : 'warn';
+          row.innerHTML = `
+            <span class="badge ${kindBadge}">${a.kind === 'low' ? 'Low' : 'High'}</span>
+            <div class="row-main">
+              <div class="row-title">${Math.round(a.v)} mg/dL</div>
+              <div class="row-sub">${fmtTime(new Date(a.t))} • ${a.note}</div>
+            </div>
+          `;
+          el.alertsList.appendChild(row);
+        }
+      }
+
+      function pushAlert(kind, v, note){
+        state.data.alerts.push({ t: Date.now(), kind, v, note });
+        if (state.settings.notify){
+          showToast(kind === 'low' ? 'Low glucose alert' : 'High glucose alert', `${Math.round(v)} mg/dL • ${note}`);
+        }
+        renderAlerts();
+      }
+
+      function exportCsv(){
+        ensureSeeded();
+        const r = getReadingsSince(1000*60*60*24*30);
+        const lines = ['timestamp,glucose_mgdl,units,glucose_display'];
+        for (const x of r){
+          const d = new Date(x.t).toISOString();
+          const disp = displayValue(x.v);
+          lines.push(`${d},${x.v},${state.settings.units},${disp.num}`);
+        }
+        const blob = new Blob([lines.join('\n')], { type:'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'glucose-report-demo.csv';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          URL.revokeObjectURL(a.href);
+          a.remove();
+        }, 2000);
+      }
+
+      function renderAll(){
+        renderDevice();
+        renderSettings();
+        renderDashboard();
+        renderMealInsulin();
+        renderDailyLogs();
+        renderTrends();
+        renderProfile();
+        renderAlerts();
+      }
+
+      // --- Interactions ---
+      // Quick actions send you to Logs (existing behavior)
+      $$('.btn[data-action]').forEach(b => b.addEventListener('click', () => show('logs')));
+
+      if (el.periodToggle){
+        $$('.chip', el.periodToggle).forEach(ch => {
+          ch.addEventListener('click', () => {
+            const p = ch.dataset.period;
+            if (!p) return;
+            state.ui.period = p;
+            $$('.chip', el.periodToggle).forEach(x => x.classList.toggle('active', x.dataset.period === p));
+            renderTrends();
+          });
+        });
+      }
+
+      // Quick add meal/insulin chips
+      $$('.chip[data-add]').forEach(ch => {
+        ch.addEventListener('click', () => {
+          ensureSeeded();
+          const kind = ch.dataset.add || '';
+          const now = Date.now();
+          if (kind.startsWith('meal-')){
+            const type = kind.replace('meal-','');
+            const proper = type === 'breakfast' ? 'Breakfast' : type === 'lunch' ? 'Lunch' : type === 'dinner' ? 'Dinner' : 'Snack';
+            const carbs = Math.round(20 + Math.random()*60);
+            state.data.events.push({ t: now, kind:'meal', type: proper, carbs });
+            showToast('Meal logged', `${proper} • ${carbs}g carbs (demo)`);
+          } else {
+            const units = round(2 + Math.random()*6, 1);
+            state.data.events.push({ t: now, kind:'insulin', type:'Bolus', units });
+            showToast('Insulin logged', `Bolus • ${units}u (demo)`);
+          }
+          renderAll();
+        });
+      });
+
+      if (el.lowSlider){
+        el.lowSlider.addEventListener('input', () => {
+          state.settings.targetLow = clamp(parseInt(el.lowSlider.value,10), 50, state.settings.targetHigh - 10);
+          renderAll();
+        });
+      }
+      if (el.highSlider){
+        el.highSlider.addEventListener('input', () => {
+          state.settings.targetHigh = clamp(parseInt(el.highSlider.value,10), state.settings.targetLow + 10, 250);
+          renderAll();
+        });
+      }
+      if (el.btnToggleNotif){
+        el.btnToggleNotif.addEventListener('click', () => {
+          state.settings.notify = !state.settings.notify;
+          renderAll();
+          showToast('Notifications', state.settings.notify ? 'Enabled' : 'Disabled');
+        });
+      }
+      if (el.btnToggleUnits){
+        el.btnToggleUnits.addEventListener('click', () => {
+          state.settings.units = (state.settings.units === 'mgdl') ? 'mmol' : 'mgdl';
+          renderAll();
+          showToast('Units updated', state.settings.units === 'mgdl' ? 'mg/dL' : 'mmol/L');
+        });
+      }
+      if (el.btnToggleShare){
+        el.btnToggleShare.addEventListener('click', () => {
+          state.settings.share = !state.settings.share;
+          renderAll();
+          showToast('Data sharing', state.settings.share ? 'On (demo)' : 'Off');
+        });
+      }
+      if (el.btnAddLog){
+        el.btnAddLog.addEventListener('click', () => {
+          ensureSeeded();
+          const last = latestReading();
+          const v = clamp((last?.v ?? 110) + (Math.random()*10 - 5), 55, 240);
+          state.data.readings.push({ t: Date.now(), v: round(v,1) });
+          renderAll();
+          showToast('Logged reading', `Saved ${Math.round(v)} mg/dL (demo)`);
+        });
+      }
+      if (el.btnClearLogs){
+        el.btnClearLogs.addEventListener('click', () => {
+          ensureSeeded();
+          const todayStart = new Date();
+          todayStart.setHours(0,0,0,0);
+          const cutoff = todayStart.getTime();
+
+          state.data.readings = state.data.readings.filter(r => r.t < cutoff);
+          state.data.events = state.data.events.filter(e => e.t < cutoff);
+          state.data.alerts = [];
+
+          renderAll();
+          showToast('Logs cleared', 'Cleared today’s readings, meals/insulin, and alerts (demo).');
+        });
+      }
+      if (el.btnTestAlert){
+        el.btnTestAlert.addEventListener('click', () => {
+          show('alerts');
+          const v = 170 + Math.floor(Math.random()*40);
+          pushAlert('high', v, 'Test alert (demo)');
+        });
+      }
+      if (el.btnExport){
+        el.btnExport.addEventListener('click', () => {
+          exportCsv();
+          showToast('Export ready', 'Downloaded CSV. Use Print to save PDF.');
+          setTimeout(() => window.print(), 350);
+        });
+      }
+      if (el.btnLogout){
+        el.btnLogout.addEventListener('click', () => {
+          showToast('Logged out (demo)', 'You have been signed out.');
+          show('dashboard');
+        });
+      }
+
+      // --- Real-time loop ---
+      function stepSimulation(){
+        ensureSeeded();
+        const last = latestReading();
+        const now = Date.now();
+        const nextT = (last ? last.t : now) + 1000*60*5;
+
+        state.device.battery = clamp(state.device.battery - 0.00003, 0, 1);
+        state.device.signal = clamp(state.device.signal + (Math.random()*0.04 - 0.02), 0.25, 1);
+        state.device.lastSyncAt = Date.now();
+
+        let v = last ? last.v : 110;
+        const base = 112 + 8*Math.sin((2*Math.PI*(new Date().getHours()*60 + new Date().getMinutes()))/1440 - 1.2);
+        v += (base - v) * 0.04;
+        v += (Math.random()*3.4 - 1.7);
+
+        const recentMeals = state.data.events.filter(e => e.kind === 'meal' && e.t >= now - 1000*60*180);
+        for (const m of recentMeals){
+          const mins = (now - m.t)/60000;
+          const peakAt = 55;
+          const amp = clamp((m.carbs || 30) * 0.55, 12, 60);
+          const x = mins / peakAt;
+          const bump = amp * x * Math.exp(1 - x);
+          v += bump * 0.035;
+        }
+        const recentIns = state.data.events.filter(e => e.kind === 'insulin' && e.t >= now - 1000*60*240);
+        for (const ins of recentIns){
+          const mins = (now - ins.t)/60000;
+          const action = Math.exp(-Math.pow((mins - 70)/55, 2));
+          v -= (ins.units || 0) * action * 0.20;
+        }
+
+        v = clamp(v, 50, 260);
+        state.data.readings.push({ t: nextT, v: round(v, 1) });
+
+        if (state.settings.notify){
+          if (v < state.settings.alertLow) pushAlert('low', v, 'Below your low threshold');
+          if (v > state.settings.alertHigh) pushAlert('high', v, 'Above your high threshold');
+        }
+
+        renderAll();
+      }
+
+      // Init
+      ensureSeeded();
+      renderAll();
+      setInterval(stepSimulation, 5000);
+      setTimeout(stepSimulation, 900);
+    })();
+  </script>
+</body>
+</html>
+
